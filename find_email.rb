@@ -40,15 +40,14 @@ class Profile
 end
 
 # Email permutations from
-# first_name, # middle_name, last_name, domain
-def permutate fn, ln, domain
+# first_name, last_name, domain
+def permutate(fn, ln, domain)
 
   fi = fn[0]
   li = ln[0]
-  # mi = mn[0]
 
   # name combinations
-  fi_perms = [fi].product ['',
+  fn_perms = [fn].product ['',
                            '_' + li,
                            '_' + ln,
                            '-' + li,
@@ -57,36 +56,7 @@ def permutate fn, ln, domain
                            '.' + ln,
                            li,
                            ln]
-  # mi + '_' + ln,
-  # mi + '-' + ln,
-  # mi + '.' + ln,
-  # mi + ln]
-  fn_perms = [fn].product ['',
-                           '_' + li,
-                           '_' + ln,
-                           # '_' + mi + '_' + ln,
-                           # '_' + mn + '_' + ln,
-                           '-' + li,
-                           '-' + ln,
-                           # '-' + mi + '-' + ln,
-                           # '-' + mn + '-' + ln,
-                           '.' + li,
-                           '.' + ln,
-                           # '.' + mi + '.' + ln,
-                           # '.' + mn + '.' + ln,
-                           li,
-                           ln ]
-  # mi + ln,
-  # mn + ln
-  li_perms = [li].product ['',
-                           '_' + fi,
-                           '_' + fn,
-                           '-' + fi,
-                           '-' + fn,
-                           '.' + fi,
-                           '.' + fn,
-                           fi,
-                           fn]
+
   ln_perms = [ln].product ['',
                            '_' + fi,
                            '_' + fn,
@@ -96,6 +66,28 @@ def permutate fn, ln, domain
                            '.' + fn,
                            fi,
                            fn]
+
+  fi_perms = [fi].product ['',
+                           '_' + li,
+                           '_' + ln,
+                           '-' + li,
+                           '-' + ln,
+                           '.' + li,
+                           '.' + ln,
+                           li,
+                           ln]
+
+  li_perms = [li].product ['',
+                           '_' + fi,
+                           '_' + fn,
+                           '-' + fi,
+                           '-' + fn,
+                           '.' + fi,
+                           '.' + fn,
+                           fi,
+                           fn]
+
+
 
   # combine into one array
   raw_perms = fn_perms + ln_perms+ fi_perms + li_perms
@@ -126,48 +118,53 @@ def permutate fn, ln, domain
 end
 
 # Find info about each generated email
-def find_valid_email emails
+def find_valid_email(emails)
   emails.each do |email|
     process_email email
   end
 end
 
 # Sends a query to the undocumented Rapportive API
-# return hash object
-def request email
+# return Profile object if valid email
+def request(email)
   status_url = 'https://rapportive.com/login_status?user_email=' + email
+  profile_url = 'https://profiles.rapportive.com/contacts/email/' + email
 
-  # exponential backoff
-  tries = 0
-  begin
-    tries += 1
-    response = JSON.parse(open(status_url).read)
-    session_token = response['session_token']
-  rescue OpenURI::HTTPError => e
-    if tries < 2
-      sleep(2**tries)
-      retry
-    else
-      return e
-    end
-  end
+  # exponential backoff to get session_token
+  response = exp_backoff 2, status_url
+  session_token = response['session_token'] if response
 
-  if response['error']
+  if response.nil? || response['error']
     false
   elsif response['status'] == 200 && session_token
-    profile_url = 'https://profiles.rapportive.com/contacts/email/' + email
-
     header = { 'X-Session-Token' => session_token }
-    response = JSON.parse(open(profile_url, header).read)
 
-    if response['success'] != 'nothing_useful'
+    # Create a Profile for valid email
+    response = exp_backoff 2, profile_url, header
+    if response.nil?
+      false
+    elsif response['success'] != 'nothing_useful'
       Profile.new(response['contact'])
     end
   end
 end
 
+# Exponential Backoff when visiting a URL
+def exp_backoff(up_to, url, header = {})
+  tries = 0
+  begin
+    tries += 1
+    response = JSON.parse(open(url, header).read)
+  rescue OpenURI::HTTPError
+    if tries < up_to
+      sleep( 2 ** tries )
+      retry
+    end
+  end
+end
+
 # Find email address in rapportive
-def process_email email
+def process_email(email)
   profile = request email
 
   begin
@@ -183,14 +180,13 @@ def process_email email
   end
 end
 
-def find_email fn, ln, domain
+def find_email(fn, ln, domain)
   permutations = permutate fn, ln, domain
   find_valid_email permutations
 end
 
-# putting it all together
+# putting it all together with options
 def main
-
   options = {}
   OptionParser.new do |opts|
 
@@ -206,10 +202,10 @@ def main
   # given a single email or a names and domains
   if options[:email]
     find_valid_email options[:email]
-    # list of domains
+  # list of domains
   elsif options[:domains]
     find_email ARGV[0], ARGV[1], options[:domains]
-    # single domain
+  # single domain
   else
     find_email ARGV[0], ARGV[1], ARGV[2]
   end
