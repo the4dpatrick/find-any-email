@@ -1,6 +1,10 @@
 Find Anyone's Email
 ===================
-Ruby script to find anyone's email using their first name, last name, and domain
+Ruby script to find anyone's email using their first name, last name, and domain.
+
+More information in my [blog post](http://patrickperey.com/find-anyones-email-a-ruby-script/blog post) at [PatrickPerey.com](http://patrickperey.com])
+
+*I'm looking for a web developer position in San Francisco*
 
 Usage
 -----
@@ -59,10 +63,12 @@ YouTube - http://youtube.com/kevinrose
 
 Notes
 -----
-* Use responsibly.
-* Valid results may be hidden if making too many requests.
+* With great power, comes great responsibly
+* Wrapper around the undocument Rapportive API.
+* Valid results may be hidden due to API's limitations
 * The script will print other emails, even the ones you're not looking for.
-* Blog post write-up soon.
+* Send Bitcoin `18fZ6muNmBrtENMZhnAjUw8eEsytmY8mZJ`
+
 
 Contributing
 ------------
