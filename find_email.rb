@@ -41,63 +41,57 @@ end
 
 # Email permutations from
 # first_name, last_name, domain
-def permutate(fn, ln, domain)
+def permutate(first_name, last_name, domain)
 
-  fi = fn[0]
-  li = ln[0]
+  first_initial = first_name[0]
+  last_initial = last_name[0]
 
-  # name combinations
-  fn_perms = [fn].product ['',
-                           '_' + li,
-                           '_' + ln,
-                           '-' + li,
-                           '-' + ln,
-                           '.' + li,
-                           '.' + ln,
-                           li,
-                           ln]
+  # Define each name permutation manually
+  name_permutations = <<PERMS
+{first_name}
+{last_name}
+{first_initial}
+{last_initial}
+{first_name}{last_name}
+{first_name}.{last_name}
+{first_initial}{last_name}
+{first_initial}.{last_name}
+{first_name}{last_initial}
+{first_name}.{last_initial}
+{first_initial}{last_initial}
+{first_initial}.{last_initial}
+{last_name}{first_name}
+{last_name}.{first_name}
+{last_name}{first_initial}
+{last_name}.{first_initial}
+{last_initial}{first_name}
+{last_initial}.{first_name}
+{last_initial}{first_initial}
+{last_initial}.{first_initial}
+{first_name}-{last_name}
+{first_initial}-{last_name}
+{first_name}-{last_initial}
+{first_initial}-{last_initial}
+{last_name}-{first_name}
+{last_name}-{first_initial}
+{last_initial}-{first_name}
+{last_initial}-{first_initial}
+{first_name}_{last_name}
+{first_initial}_{last_name}
+{first_name}_{last_initial}
+{first_initial}_{last_initial}
+{last_name}_{first_name}
+{last_name}_{first_initial}
+{last_initial}_{first_name}
+{last_initial}_{first_initial}
+PERMS
 
-  ln_perms = [ln].product ['',
-                           '_' + fi,
-                           '_' + fn,
-                           '-' + fi,
-                           '-' + fn,
-                           '.' + fi,
-                           '.' + fn,
-                           fi,
-                           fn]
-
-  fi_perms = [fi].product ['',
-                           '_' + li,
-                           '_' + ln,
-                           '-' + li,
-                           '-' + ln,
-                           '.' + li,
-                           '.' + ln,
-                           li,
-                           ln]
-
-  li_perms = [li].product ['',
-                           '_' + fi,
-                           '_' + fn,
-                           '-' + fi,
-                           '-' + fn,
-                           '.' + fi,
-                           '.' + fn,
-                           fi,
-                           fn]
-
-
-
-  # combine into one array
-  raw_perms = fn_perms + ln_perms+ fi_perms + li_perms
-
-  name_perms = []
-
-  # [[fn, '_' + li]] => [[fn + '_' + li]]
-  raw_perms.each do |perm|
-    name_perms << perm.join
-  end
+  # substitutions to get all permutations to an Array
+  name_permutations = name_permutations.gsub('{first_name}', first_name)
+                                       .gsub('{last_name}', last_name)
+                                       .gsub('{first_initial}', first_initial)
+                                       .gsub('{last_initial}', last_initial)
+                                       .split($/)
 
   # accept domain arg to be a string or an array
   # %40 => @
@@ -109,12 +103,11 @@ def permutate(fn, ln, domain)
     raise ArgumentError, 'Domain was neither a String or Array'
   end
 
-  name_and_domains = name_perms.product domain
+  name_and_domains = name_permutations.product domain
 
   # combine names and domains
+  # return permuations
   permutations = name_and_domains.map {|email| email.join }
-
-  permutations
 end
 
 # Find info about each generated email
