@@ -173,8 +173,8 @@ def process_email(email)
   end
 end
 
-def find_email(fn, ln, domain)
-  permutations = permutate fn, ln, domain
+def find_email(first_name, last_name, domain)
+  permutations = permutate first_name, last_name, domain
   find_valid_email permutations
 end
 
