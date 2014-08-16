@@ -1,10 +1,12 @@
+**This script has been made into a Ruby Gem [PossibleEmail](https://github.com/the4dpatrick/possible-email)**
+
+----
+
 Find Anyone's Email
 ===================
 Ruby script to find anyone's email using their first name, last name, and domain.
 
 More information in my [blog post](http://patrickperey.com/find-anyones-email-a-ruby-script "blog post") at [PatrickPerey.com](http://patrickperey.com "Patrick Perey Blog")
-
-*I'm looking for a web developer position in San Francisco*
 
 Usage
 -----
